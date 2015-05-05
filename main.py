@@ -16,8 +16,10 @@
 #
 import webapp2
 from controllers import index
+from channel import channel
 
 
 app = webapp2.WSGIApplication([
-    ('/', index.Index)
+    ('/', index.Index),
+    ('/connect', channel.Connect)
 ], debug=True)

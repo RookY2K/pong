@@ -1,15 +1,15 @@
 /**
  * Created by Vince Maiuri on 5/4/2015.
  */
-var connector = function () {
+var connector = (function () {
     "use strict";
     var onOpen, onMessage, onError, onClose, sendMessage,
-        open, channel, socket, playerName;
+        open, channel, socket, player;
 
-    open = function (token, name) {
-        playerName = name;
+    open = function (player_input) {
+        player = player_input;
         //noinspection JSUnresolvedFunction
-        channel = new goog.appengine.Channel(token);
+        channel = new goog.appengine.Channel(player.token);
         socket = channel.open();
         socket.onopen = onOpen;
         socket.onclose = onClose;
@@ -18,8 +18,7 @@ var connector = function () {
     };
 
     onOpen = function () {
-        //TODO finish stub
-        return null;
+        sendMessage("/open", {"player": player});
     };
 
     onMessage = function (message) {
@@ -41,8 +40,13 @@ var connector = function () {
         data = data || {};
 
         $.post(path,  data,  "json");
-    }
-};
+    };
+
+    return {
+        "open": open,
+        "sendMessage": sendMessage
+    };
+}());
 
 $(document).ready(function () {
     "use strict";
@@ -51,11 +55,11 @@ $(document).ready(function () {
     //noinspection JSUnusedGlobalSymbols
     $.ajax({
         url: "/connect",
+        method: "GET",
         data: {"userName": userName},
         dataType: "json",
         success: function (data) {
-            //TODO fill in stub
-            return data;
+            connector.open(data);
         }
     });
 });

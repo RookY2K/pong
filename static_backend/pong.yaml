@@ -1,0 +1,13 @@
+application: pongv4-1
+module: static-backend
+version: 1
+runtime: python27
+api_version: 1
+instance_class: B1
+threadsafe: yes
+manual_scaling:
+  instances: 1
+
+handlers:
+- url: /.*
+  script: pong.app
