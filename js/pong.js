@@ -1,6 +1,8 @@
 /**
  * Created by Vince Maiuri on 5/4/2015.
  */
+
+/***************Pong Game JS****************************/
 var connector = (function () {
     "use strict";
     var onOpen, onMessage, onError, onClose, sendMessage,
@@ -63,3 +65,4 @@ $(document).ready(function () {
         }
     });
 });
+
