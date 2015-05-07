@@ -15,11 +15,15 @@
 # limitations under the License.
 #
 import webapp2
-from controllers import index
+from controllers import index, pong
 from channel import channel
 
 
 app = webapp2.WSGIApplication([
     ('/', index.Index),
-    ('/connect', channel.Connect)
+    ('/login', index.Login),
+    ('/lobby-update', index.Lobby),
+    ('/pong', pong.Pong),
+    ('/connect', channel.Connect),
+    ('/open', channel.Open)
 ], debug=True)

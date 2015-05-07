@@ -10,6 +10,17 @@
     <link rel="stylesheet" type="text/css" href="/css/pong.css" />
 </head>
 <body>
+    <header role="banner">
+        <section id="player_info">
+            <div id="display_name">{{ player_name }}</div>
+        </section>
+        <section id="game_id">
+            <p>{{ game_id }}</p>
+        </section>
+        <section id="log_links">
+            <a href="/pong?leave_game" title="Leave Game" id="log_link" class="nav">Leave Game</a>
+        </section>
+    </header>
     <canvas id="canvas"></canvas>
 </body>
 </html>

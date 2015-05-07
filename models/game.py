@@ -8,6 +8,7 @@ from helpers import constants
 class Game(ndb.Model):
     game_index = ndb.StringProperty(required=True, indexed=True)
     num_players = ndb.IntegerProperty(required=True, default=0)
+    ready = ndb.IntegerProperty(required=True, default=0)
     players = ndb.JsonProperty(repeated=True)
 
     default_parent = 'pong_parent'
@@ -15,6 +16,25 @@ class Game(ndb.Model):
     @classmethod
     def game_parent_key(cls, parent_name=default_parent):
         return ndb.Key('Pong', parent_name)
+
+    @classmethod
+    def game_key(cls, game_index, parent_name=default_parent):
+        return ndb.Key(cls, game_index, parent=cls.game_parent_key(parent_name))
+
+    @ndb.transactional()
+    def incr_ready(self):
+        self.ready += 1
+        self.put()
+
+        return self.ready
+
+    @ndb.transactional()
+    def add_player_token(self, player_name, token):
+        for player in self.players:
+            if player['player_name'] == player_name:
+                player['token'] = token
+
+        self.put()
 
     @ndb.transactional()
     def add_player(self, player):
@@ -33,11 +53,8 @@ class Game(ndb.Model):
 
     @classmethod
     def get_game(cls, game_index):
-        game_query = cls.query(
-            ancestor=cls.game_parent_key(),
-            game_index=game_index
-        )
-        return game_query.fetch(1)[0]
+        game_key = cls.game_key(game_index)
+        return game_key.get()
 
     @classmethod
     @ndb.transactional()
@@ -55,7 +72,7 @@ class Game(ndb.Model):
         for i in range(constants.MAX_GAMES):
             index = 'game-{}'.format(i+1)
             game = cls(
-                parent=cls.game_parent_key(),
+                key=cls.game_key(index),
                 game_index=index)
             games.append(game)
         ndb.put_multi(games)

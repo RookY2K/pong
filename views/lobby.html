@@ -9,9 +9,31 @@
     <link rel="stylesheet" type="text/css" href="/css/pong.css" />
 </head>
 <body>
+    <header role="banner">
+        <section id="player_info">
+            <div id="display_name">{{ player_name }}</div>
+        </section>
+        <section id="log_links">
+            <a href="/login#login" title="Log In" id="log_link" class="nav">{{ log_status }}</a>
+        </section>
+    </header>
+    <div id="login" class="modal">
+        <div>
+            <!--suppress HtmlUnknownAnchorTarget -->
+            <a href="#close" title="Close" class="close">X</a>
+            <form action="/login" method="post">
+                <label for="player_name">Name:</label>
+                <input type="text" name="player_name" id="player_name" autofocus>
+                <input type="submit" id="submit" value="Log in">
+            </form>
+        </div>
+    </div>
     <section id="lobby">
-        {% for game in games %}
-        <a href="#{{ game.game_index }}">
+        {% if not games %}
+        <p>Please Log in!</p>
+        {% endif %}
+        {% for game in games or []%}
+        <a href="#{{ game.game_index }}" class="lobby_link">
             <section class="game_button" id="{{ game.game_index }}">
                 <p>{{ game.game_index.replace('-', ' ') }} : {{ game.num_players }} / {{ max_players }}</p>
             </section>

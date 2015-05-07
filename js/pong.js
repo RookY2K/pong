@@ -3,6 +3,37 @@
  */
 
 /***************Pong Game JS****************************/
+var gameUpdate = (function () {
+    "use strict";
+    var myPlayer, otherPlayer, parseMessage, getMyPlayer, getOtherPlayer;
+
+    myPlayer = {};
+    otherPlayer = {};
+
+    parseMessage = function (msg) {
+        switch (msg.state) {
+        case 'in-game':
+            myPlayer.side = msg.side;
+            myPlayer.numPlayer = msg.player_num;
+            break;
+        }
+    };
+
+    getMyPlayer = function () {
+        return myPlayer;
+    };
+
+    getOtherPlayer = function () {
+        return otherPlayer;
+    };
+
+    return {
+        'parseMessage': parseMessage,
+        'getMyPlayer': getMyPlayer,
+        'getOtherPlayer': getOtherPlayer
+    };
+}());
+
 var connector = (function () {
     "use strict";
     var onOpen, onMessage, onError, onClose, sendMessage,
@@ -20,12 +51,15 @@ var connector = (function () {
     };
 
     onOpen = function () {
-        sendMessage("/open", {"player": player});
+        //var playerString = JSON.stringify(player);
+        var data = {
+            "player_info": JSON.stringify(player)
+        };
+        sendMessage("/open", data);
     };
 
     onMessage = function (message) {
-        //TODO finish stub
-        return message;
+        gameUpdate.parseMessage(message);
     };
 
     onError = function () {
@@ -41,7 +75,7 @@ var connector = (function () {
     sendMessage = function (path, data) {
         data = data || {};
 
-        $.post(path,  data,  "json");
+        $.post(path,  data);
     };
 
     return {
@@ -52,13 +86,17 @@ var connector = (function () {
 
 $(document).ready(function () {
     "use strict";
-    var userName = window.prompt("User name: ");
-
+    var playerName, gameId;
+    playerName = $("#display_name").text();
+    gameId = $("#game_id").find("p").text();
     //noinspection JSUnusedGlobalSymbols
     $.ajax({
         url: "/connect",
         method: "GET",
-        data: {"userName": userName},
+        data: {
+            "playerName": playerName,
+            "gameId": gameId
+        },
         dataType: "json",
         success: function (data) {
             connector.open(data);
