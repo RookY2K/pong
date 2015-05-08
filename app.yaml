@@ -5,6 +5,9 @@ runtime: python27
 api_version: 1
 threadsafe: yes
 
+inbound_services:
+- channel_presence
+
 handlers:
 - url: /css
   static_dir: css

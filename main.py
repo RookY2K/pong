@@ -25,5 +25,7 @@ app = webapp2.WSGIApplication([
     ('/lobby-update', index.Lobby),
     ('/pong', pong.Pong),
     ('/connect', channel.Connect),
-    ('/open', channel.Open)
+    ('/open', channel.Open),
+    ('/_ah/channel/disconnected/', pong.LeaveGame),
+    ('/leave_game', pong.LeaveGame)
 ], debug=True)

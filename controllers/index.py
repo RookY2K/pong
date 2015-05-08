@@ -2,41 +2,23 @@ __author__ = 'Vince Maiuri'
 import webapp2
 import json
 import urllib
-from google.appengine.api import memcache
 
 from helpers import constants
 from models.game import Game
+from models.player import Player
 
-
-def get_games():
-    game_range = [str(x) for x in range(1, constants.MAX_GAMES+1)]
-    games_dict = memcache.get_multi(game_range, key_prefix='game-')
-    if not games_dict:
-        games = Game.get_all_games()
-        game_dict = {}
-        for i in range(len(games)):
-            game_dict[str(game_range[i])] = games[i]
-
-        memcache.set_multi(game_dict, key_prefix='game-')
-    else:
-        games = []
-        for key, value in games_dict.iteritems():
-            games.append(value)
-
-        games = sorted(games, key=lambda game: game.game_index)
-
-    return games
 
 def send_lobby(that, player_name=None):
     template = constants.JINJA_ENVIRONMENT.get_template('lobby.html')
-    games = get_games()
+    games = Game.get_all_games()
     template_values = {
         'games': games,
         'max_players': constants.MAX_PLAYERS,
     }
 
     if player_name:
-        template_values['player_name'] = player_name
+        player = Player.get_player(player_name)
+        template_values['player_name'] = player.name
         template_values['log_status'] = 'Log Out'
 
     that.response.write(template.render(template_values))
@@ -50,7 +32,6 @@ class Index(webapp2.RequestHandler):
 
         send_lobby(self, player_name)
 
-
     def post(self):
         game_id = self.request.get('gameId')
         player_name = self.request.get('playerName')
@@ -59,13 +40,17 @@ class Index(webapp2.RequestHandler):
 
         ret_val = {}
 
-        if game.add_player({'player_name': player_name}):
+        if game.add_player(player_name):
             ret_val['open'] = True
-            memcache.set(game.game_index, game)
         else:
             ret_val['open'] = False
+            if game.num_players < constants.MAX_PLAYERS:
+                ret_val['reason'] = 'in-game'
+            else:
+                ret_val['reason'] = 'game-full'
 
         self.response.write(json.dumps(ret_val))
+
 
 class Login(webapp2.RequestHandler):
     def get(self):
@@ -76,6 +61,7 @@ class Login(webapp2.RequestHandler):
         player_name = self.request.get("player_name")
         query_string = {'player_name': player_name}
         return self.redirect('/?{}'.format(urllib.urlencode(query_string)))
+
 
 class Lobby(webapp2.RequestHandler):
     def get(self):
