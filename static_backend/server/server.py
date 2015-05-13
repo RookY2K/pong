@@ -1,88 +1,104 @@
 __author__ = 'Vince Maiuri'
 
 import webapp2
-import threading
+from threading import Thread, Event
 import time
-from google.appengine.api import background_thread, memcache
-from static_backend.game_objects import player
-from static_backend.backend_channel import channel
+from google.appengine.api import background_thread
+from models.game import Game
+from models.player import Player
+from game_helpers import constants
+from game_objects import player
+from backend_channel import channel
+
+game_inputs = {}
 
 
 class Start(webapp2.RequestHandler):
-    def get(self):
-        background_thread.BackgroundThread(target=server_start).start()
+    def post(self):
+        game_id = self.request.get('gameId')
+
+        background_thread.BackgroundThread(target=game_start, args=[game_id, ]).start()
         self.response.http_status_message(200)
 
 
-def server_start():
-    games = {
-        'number': 1,
-        'games': {}
-    }
+class Input(webapp2.RequestHandler):
+    def post(self):
+        player_input = self.request.get('input')
+        player_name = self.request.get('playerName')
 
+        game_inputs[player_name] = player_input
+
+
+def game_start(game_id):
     timer_interval = .0035
     physics_interval = .0145
     client_update_interval = .0445
     get_input_interval = .0125
 
+    game = Game.get_game(game_id)
+    players = {}
+    for i in range(len(game.players)):
+        player_name = game.players[i]
+        player_model = Player.get_player(player_name)
+        if i == 0:
+            side = 'left'
+        elif i == 1:
+            side = 'right'
+
+        players[side] = player.Player(player_name, side, game_id, player_model.token)
+
+    start_game_info = {
+        'state': 'start-game',
+        'server_time': (time.time() * 1000)
+    }
+
+    game_info = {
+        'left': players['left'],
+        'right': players['right']
+    }
+
+    game_stop_flag = Event()
+    game_loop = UpdateThread(start_game, 10000, game_stop_flag, [game_info, ])
+    game_loop.start()
+
+    channel.send_message_to_client(start_game_info, players['left'].token)
+    channel.send_message_to_client(start_game_info, players['right'].token)
+
     while True:
-        players = []
-        game_number = games['number']
-        game_index = None
-
-        while len(players) < 2:
-            cur_game_pointer = memcache.get('game_pointer')
-            if cur_game_pointer < game_number:
-                continue
-
-            game_index = 'game{}'.format(game_number)
-            players_get = memcache.get(game_index)
-            if players_get:
-                players = players_get
-
-        game_info = {
-            'intervals': {
-                'timer': timer_interval,
-                'physics': physics_interval,
-                'client': client_update_interval,
-                'get_input': get_input_interval
-            },
-            'players': players,
-            'game_index': game_index
-        }
-
-        if game_index:
-            background_thread.BackgroundThread(target=start_game, name=game_index, kwargs=game_info)
+        game = Game.get_game(game_id)
+        if game.ready < constants.MAX_PLAYERS:
+            game_stop_flag.set()
+            break
 
 
 def start_game(game_info):
-    players = game_info['players']
-    player1_name = players[0]['name']
-
-    player2_name = players[1]['name']
-    player1_token = players[0]['token']
-    player2_token = players[1]['token']
-    player1 = player.Player(player1_name, 'left', game_info['game_index'], player1_token)
-    player2 = player.Player(player2_name, 'right', game_info['game_index'], player2_token)
+    left_player = game_info['left']
+    right_player = game_info['right']
 
     msg1 = {
         'state': 'opponent-notification',
-        'message': 'Opponent = {}'.format(player2.user_name)
+        'message': 'Opponent = {}'.format(right_player.player_name)
     }
     msg2 = {
         'state': 'opponent-notification',
-        'message': 'Opponent = {}'.format(player1.user_name)
+        'message': 'Opponent = {}'.format(left_player.player_name)
     }
 
-    channel.send_message_to_client(msg1, player1.token)
-    channel.send_message_to_client(msg2, player2.token)
+    channel.send_message_to_client(msg1, left_player.token)
+    channel.send_message_to_client(msg2, right_player.token)
 
 
+class UpdateThread(Thread):
+    def __init__(self, func, interval, stop_event, args):
+        Thread.__init__(self)
+        self.func = func
+        self.interval = interval
+        self.args = args
+        self.stopped = stop_event
 
-def update_loop(update_function, interval):
-    start_time = time.time() * 1000
-    update_function()
-    timer = max(0, interval - ((time.time() * 1000 - start_time)))
-    threading._Timer(timer, update_loop, [update_function, interval])
-
-
+    def run(self):
+        timer = 0.0
+        while not self.stopped.wait(timer / 1000):
+            start_time = time.time() * 1000
+            self.func(self.args[0])
+            timer = max(0, self.interval - ((time.time() * 1000) - start_time))

@@ -5,5 +5,5 @@ from server import server
 
 
 app = webapp2.WSGIApplication([
-    ('/_ah/start', server.Start)
+    ('/game/start', server.Start)
 ], debug=True)

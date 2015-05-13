@@ -1,14 +1,16 @@
 __author__ = 'Vince Maiuri'
-from static_backend.game_helpers import constants
-from static_backend.game_helpers import math
+from game_helpers import constants
+from game_helpers import math
+from server import server
 import time
+import json
 
 
 class Player:
-    def __init__(self, user_name, side, game_index, token):
+    def __init__(self, player_name, side, game_index, token):
         self.length = constants.PADDLE_LENGTH
         self.width = constants.PADDLE_WIDTH
-        self.user_name = user_name
+        self.player_name = player_name
         self.token = token
         self.side = side
         self.game_index = game_index
@@ -28,3 +30,52 @@ class Player:
         }
         self.last_input_seq = 0
         self.last_input_time = self.time_stamp
+
+    def get_inputs(self):
+        inputs = server.game_inputs[self.player_name]
+
+        if inputs:
+            inputs = json.loads(inputs)
+            self.inputs.append({
+                'inputs': inputs['inputs'],
+                'time': inputs['time'],
+                'seq': inputs['seq']
+            })
+
+    def check_bounds(self):
+        if self.side == 'left' or self.side == 'right':
+            if self.pos['y'] > self.limits['max)y']:
+                self.pos['y'] = self.limits['max_y']
+
+            if self.pos['y'] < self.limits['min_y']:
+                self.pos['y'] = self.limits['min_y']
+
+    def process_inputs(self):
+        x_direction = y_direction = 0
+        process_input = None
+        input_length = len(self.inputs)
+
+        if input_length:
+            for i in range(input_length):
+                process_input = self.inputs[i]
+                if process_input['seq'] <= self.last_input_seq:
+                    continue
+
+                inputs = process_input['inputs']
+                length = len(inputs)
+
+                for j in range(length):
+                    single_input = inputs[j]
+                    if single_input == 'up':
+                        y_direction -= 1
+                    elif single_input == 'down':
+                        y_direction += 1
+
+        vector = math.get_direction_vector(x_direction, y_direction)
+
+        if process_input:
+            self.last_input_time = process_input['time']
+            self.last_input_seq = process_input['seq']
+            del self.inputs[:input_length]
+
+        return vector

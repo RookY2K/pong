@@ -1,5 +1,5 @@
 __author__ = 'Vince Maiuri'
-from static_backend.game_helpers import constants
+from game_helpers import constants
 
 
 def fixed(num, n=3):
