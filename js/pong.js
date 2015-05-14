@@ -125,12 +125,8 @@ var pongComponents = (function () {
     };
 
     ball = {
-        x: width / 2,
-        y: height / 2,
         radius: 5,
         color: "white",
-        velX: 5,
-        velY: 3,
 
         draw: function () {
             context.beginPath();
@@ -270,10 +266,11 @@ var gameUpdate = (function () {
         handleKeyBoardInputs, isUp, isDown, handleServerUpdates,
         updateLocalPos, refreshFPS, setPlayerName, getFPS,
         onServerUpdateReceived, processPredictionCorrection, cancelUpdate,
-        onStart, onInGame;
+        onStart, onInGame, ball;
 
     myPlayer = {};
     otherPlayer = {};
+    ball = {};
 
     handleKeyBoardInputs = function () {
         var input = [],
@@ -338,6 +335,8 @@ var gameUpdate = (function () {
 
         otherPlayer.paddle.draw(otherPlayer.side);
 
+        ball.draw();
+
         updateLocalPos();
 
         myPlayer.paddle.draw(myPlayer.side);
@@ -359,7 +358,8 @@ var gameUpdate = (function () {
         var currentTime, count, target, previous,
             point, nextPoint, difference, maxDifference,
             timePoint, otherTargetPos, otherLatestPos,
-            otherPastPos, i;
+            otherPastPos, i, ballTargetPos, ballPastPos,
+            ballLatestPos;
 
         if (!serverUpdates.length) {
             return;
@@ -410,9 +410,15 @@ var gameUpdate = (function () {
             //noinspection JSUnresolvedVariable
             otherTargetPos = otherPlayer.side === "left" ? target.left_pos : target.right_pos;
             //noinspection JSUnresolvedVariable
+            ballTargetPos = target.ball_pos;
+            //noinspection JSUnresolvedVariable
             otherPastPos = otherPlayer.side === "left" ? previous.left_pos : previous.right_pos;
+            //noinspection JSUnresolvedVariable
+            ballPastPos = previous.ball_pos;
             otherLatestPos = gameMath.vectorInterpolation(otherPastPos, otherTargetPos, timePoint);
+            ballLatestPos = gameMath.vectorInterpolation(ballPastPos, ballTargetPos, timePoint);
             otherPlayer.paddle.pos = gameMath.vectorInterpolation(otherPlayer.paddle.pos, otherLatestPos, physics.getDelta() * 25);
+            ball.pos = gameMath.vectorInterpolation(ball.pos, ballLatestPos, physics.getDelta() * 25);
         }
     };
 
@@ -457,6 +463,7 @@ var gameUpdate = (function () {
         clientTime = serverTime - (netOffset / 1000);
 
         serverUpdates.push(msg);
+        serverUpdates.sort(function (a, b) {return a.server_time - b.server_time; });
 
         if (serverUpdates >= (60 * bufferSize)) {
             serverUpdates.shift();
@@ -468,6 +475,7 @@ var gameUpdate = (function () {
     onStart = function (msg) {
         myPlayer.paddle = pongComponents.getPaddle(myPlayer.side);
         otherPlayer.paddle = pongComponents.getPaddle(otherPlayer.side);
+        ball = pongComponents.getBall();
         gameTimer.updateTimer();
         physics.initPlayer(myPlayer);
         physics.update();

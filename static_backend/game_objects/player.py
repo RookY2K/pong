@@ -44,10 +44,10 @@ class Player:
         input_length = len(self.inputs)
 
         if input_length:
-            print 'Player {} inputs length = {}'.format(self.player_name, input_length)
+            # print 'Player {} inputs length = {}'.format(self.player_name, input_length)
             for i in range(input_length):
                 process_input = self.inputs[i]
-                print 'Input seq = {} and last input seq = {}'.format(process_input['seq'], self.last_input_seq)
+                # print 'Input seq = {} and last input seq = {}'.format(process_input['seq'], self.last_input_seq)
                 if process_input['seq'] <= self.last_input_seq:
                     continue
 

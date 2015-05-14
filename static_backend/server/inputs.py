@@ -19,7 +19,7 @@ class Input(webapp2.RequestHandler):
                 'time': inputs['time'],
                 'seq': inputs['seq']
             })
-            print inputs['inputs']
+            # print inputs['inputs']
             self.response.http_status_message(200)
         else:
             self.response.http_status_message(404)

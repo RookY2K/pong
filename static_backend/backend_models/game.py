@@ -70,7 +70,10 @@ class Game(ndb.Model):
 
     @classmethod
     def get_game(cls, game_index):
-        game = memcache.get(game_index)
+        try:
+            game = memcache.get(game_index)
+        except ImportError:
+            game = None
 
         if not game:
             game_key = cls._game_key(game_index)
@@ -103,7 +106,10 @@ class Game(ndb.Model):
     def _get_games_from_memcache(cls):
         games = None
         game_range = [str(x) for x in range(1, constants.MAX_GAMES+1)]
-        games_dict = memcache.get_multi(game_range, key_prefix='game-')
+        try:
+            games_dict = memcache.get_multi(game_range, key_prefix='game-')
+        except ImportError:
+            games_dict = None
 
         if games_dict:
             games = []

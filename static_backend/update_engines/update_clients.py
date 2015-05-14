@@ -4,8 +4,9 @@ __author__ = 'Vince Maiuri'
 
 
 class UpdateClients:
-    def __init__(self, players, game_timer):
+    def __init__(self, players, game_timer, ball):
         self.players = players
+        self.ball = ball
         self.game_timer = game_timer
         self.last_left_seq = 0
         self.last_right_seq = 0
@@ -25,8 +26,8 @@ class UpdateClients:
                 right_pos = player.pos
                 right_seq = player.last_input_seq
 
-        if self.count % 4000 == 0:
-            print 'Client update iteration: {} left pos = {}, right pos = {}, left seq = {}, right seq = {}'.format(self.count, left_pos, right_pos, left_seq, right_seq)
+        # if self.count % 4000 == 0:
+        #     print 'Client update iteration: {} left pos = {}, right pos = {}, left seq = {}, right seq = {}'.format(self.count, left_pos, right_pos, left_seq, right_seq)
 
         msg = {
             'state': 'server-update',
@@ -34,19 +35,20 @@ class UpdateClients:
             'right_pos': right_pos,
             'left_seq': left_seq,
             'right_seq': right_seq,
+            'ball_pos': self.ball.pos,
             'server_time': server_time
         }
-        update = False
+        # update = False
 
-        if left_seq > self.last_left_seq:
-            self.last_left_seq = left_seq
-            update = True
-
-        if right_seq > self.last_right_seq:
-            self.last_right_seq = right_seq
-            update = True
-
-        if update:
-            for player in self.players:
-                print 'Updating player {} with left pos: {}, right pos: {}, left seq: {}, and right seq: {}'.format(player.player_name, left_pos, right_pos, left_seq, right_seq)
-                channel.send_message_to_client(msg, player.token)
+        # if left_seq > self.last_left_seq:
+        #     self.last_left_seq = left_seq
+        #     update = True
+        #
+        # if right_seq > self.last_right_seq:
+        #     self.last_right_seq = right_seq
+        #     update = True
+        #
+        # if update:
+        for player in self.players:
+            # print 'Updating player {} with left pos: {}, right pos: {}, left seq: {}, and right seq: {}'.format(player.player_name, left_pos, right_pos, left_seq, right_seq)
+            channel.send_message_to_client(msg, player.token)

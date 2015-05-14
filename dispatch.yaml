@@ -1,4 +1,4 @@
-application: pongv4-2
+application: pongv4-3
 
 dispatch:
   - url: "*/game/*"

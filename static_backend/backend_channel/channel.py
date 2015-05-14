@@ -2,6 +2,7 @@ __author__ = 'Vince Maiuri'
 
 import json
 import webapp2
+import urllib
 from google.appengine.api import channel
 from backend_models.player import Player
 from backend_models.game import Game
@@ -54,3 +55,25 @@ class Open(webapp2.RequestHandler):
         }
 
         channel.send_message(player['token'], json.dumps(message))
+
+
+class LeaveGame(webapp2.RequestHandler):
+    def get(self):
+        player_name = self.request.get('player_name')
+        query_str = {'player_name': player_name}
+        self.leave_game(player_name)
+        return self.redirect('/?{}'.format(urllib.urlencode(query_str)))
+
+    def post(self):
+        player_name = self.request.get('from')
+        self.leave_game(player_name)
+
+    def leave_game(self, player_name):
+        player = Player.get_player(player_name)
+        game_id = player.game_id
+
+        game = Game.get_game(game_id)
+        if game.remove_player(player_name):
+            return self.redirect('/')
+        else:
+            return self.response.http_status_message(404)

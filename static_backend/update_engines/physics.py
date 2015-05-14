@@ -22,14 +22,12 @@ class PhysicsEngine:
         for player in self.players:
             player.prev_pos = math.pos(player.cur_pos)
             direction_vector = player.process_inputs()
-            if direction_vector['y'] != 0:
-
-                print 'Direction vector = {}'.format(direction_vector)
             player.pos = math.add_vector(player.prev_pos, direction_vector)
             player.check_bounds()
             player.cur_pos = math.pos(player.pos)
-            if self.count % 2000 == 0:
-                print 'Physics Iteration: {} >> Player {} current position: {}'.format(self.count, player.player_name, player.pos)
 
-        if self.count % 2000 == 0:
-            print 'Player count = {}'.format(len(self.players))
+        self.ball.prev_pos = math.pos(self.ball.cur_pos)
+        direction_vector = self.ball.vel
+        self.ball.pos = math.add_vector(self.ball.prev_pos, direction_vector)
+        self.ball.check_bounds(self.players)
+        self.ball.cur_pos = math.pos(self.ball.pos)

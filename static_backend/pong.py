@@ -10,4 +10,6 @@ app = webapp2.WSGIApplication([
     ('/game/inputs', inputs.Input),
     ('/game/connect', channel.Connect),
     ('/game/open', channel.Open),
+    ('/_ah/channel/disconnected/', channel.LeaveGame),
+    ('/game/leave_game', channel.LeaveGame)
 ], debug=True)

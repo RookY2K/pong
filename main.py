@@ -22,7 +22,5 @@ app = webapp2.WSGIApplication([
     ('/', index.Index),
     ('/login', index.Login),
     ('/lobby-update', index.Lobby),
-    ('/pong', pong.Pong),
-    ('/_ah/channel/disconnected/', pong.LeaveGame),
-    ('/leave_game', pong.LeaveGame)
+    ('/pong', pong.Pong)
 ], debug=True)

@@ -23,7 +23,10 @@ class Player(ndb.Model):
     @classmethod
     @ndb.transactional()
     def get_player(cls, name):
-        player = memcache.get(name)
+        try:
+            player = memcache.get(name)
+        except ImportError:
+            player = None
 
         if not player:
             player_key = cls._player_key(name)

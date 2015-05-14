@@ -7,7 +7,7 @@ from google.appengine.api import background_thread
 from backend_models.game import Game
 from backend_models.player import Player
 from game_helpers import constants
-from game_objects import player
+from game_objects import player, ball
 from update_engines import physics, update_clients, update_timer
 from backend_channel import channel
 import inputs
@@ -43,6 +43,7 @@ def game_start(game_id):
         player_list.append(players[side])
         inputs.global_game_players[player_name] = players[side]
 
+    game_ball = ball.Ball()
     start_game_info = {
         'state': 'start-game',
         'server_time': (time.time() * 1000)
@@ -62,12 +63,12 @@ def game_start(game_id):
     timer_loop = UpdateThread(timer_obj.update_timer, timer_interval, timer_stop_flag)
     timer_loop.start()
 
-    physics_obj = physics.PhysicsEngine(player_list, None)
+    physics_obj = physics.PhysicsEngine(player_list, game_ball)
     physics_stop_flag = Event()
     physics_loop = UpdateThread(physics_obj.update, physics_interval, physics_stop_flag)
     physics_loop.start()
 
-    client_update_obj = update_clients.UpdateClients(player_list, timer_obj)
+    client_update_obj = update_clients.UpdateClients(player_list, timer_obj, game_ball)
     client_update_stop_flag = Event()
     client_update_loop = UpdateThread(client_update_obj.update, client_update_interval, client_update_stop_flag)
     client_update_loop.start()

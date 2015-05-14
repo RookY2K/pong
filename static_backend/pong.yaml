@@ -1,4 +1,4 @@
-application: pongv4-2
+application: pongv4-3
 module: static-backend
 version: 1
 runtime: python27
@@ -7,6 +7,9 @@ instance_class: B1
 threadsafe: yes
 manual_scaling:
   instances: 1
+
+inbound_services:
+- channel_presence
 
 handlers:
 - url: /.*
