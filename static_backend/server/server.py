@@ -34,29 +34,17 @@ def game_start(game_id):
     for i in range(len(game.players)):
         player_name = game.players[i]
         player_model = Player.get_player(player_name)
-        if i == 0:
-            side = 'left'
-        elif i == 1:
-            side = 'right'
+        side = player_model.side
 
         players[side] = player.Player(player_name, side, game_id, player_model.token)
         player_list.append(players[side])
         inputs.global_game_players[player_name] = players[side]
 
-    game_ball = ball.Ball()
+    game_ball = ball.Ball(game_id)
     start_game_info = {
         'state': 'start-game',
         'server_time': (time.time() * 1000)
     }
-
-    # game_info = {
-    #     'left': players['left'],
-    #     'right': players['right']
-    # }
-
-    # game_stop_flag = Event()
-    # game_loop = UpdateThread(start_game, 10000, game_stop_flag, [game_info, ])
-    # game_loop.start()
 
     timer_obj = update_timer.UpdateTimer()
     timer_stop_flag = Event()
@@ -78,32 +66,21 @@ def game_start(game_id):
 
     while True:
         game = Game.get_game(game_id)
-        if game.ready < constants.MAX_PLAYERS:
-            # game_stop_flag.set()
+        if game.ready < constants.MAX_PLAYERS or game_ball.won:
             timer_stop_flag.set()
             physics_stop_flag.set()
             client_update_stop_flag.set()
             for player_obj in player_list:
                 inputs.remove_player_inputs(player_obj.player_name)
+
+            if game_ball.won:
+                msg = {
+                    'state': 'game-win',
+                    'win': game_ball.won
+                }
+                for game_player in player_list:
+                    channel.send_message_to_client(msg, game_player.token)
             break
-
-
-def start_game(args):
-    game_info = args[0]
-    left_player = game_info['left']
-    right_player = game_info['right']
-
-    msg1 = {
-        'state': 'opponent-notification',
-        'message': 'Opponent = {}'.format(right_player.player_name)
-    }
-    msg2 = {
-        'state': 'opponent-notification',
-        'message': 'Opponent = {}'.format(left_player.player_name)
-    }
-
-    channel.send_message_to_client(msg1, left_player.player_name)
-    channel.send_message_to_client(msg2, right_player.player_name)
 
 
 class UpdateThread(Thread):

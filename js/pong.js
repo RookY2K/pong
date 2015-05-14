@@ -72,22 +72,31 @@ var gameTimer = (function () {
         localTime = 0.016,
         timerStartDelta = Date.now(),
         timerEndDelta = Date.now(),
-        getLocalTime;
+        getLocalTime,
+        isTiming = true,
+        stopTiming;
 
     updateTimer = function () {
         timerStartDelta = Date.now() - timerEndDelta;
         timerEndDelta = Date.now();
         localTime += timerStartDelta / 1000.0;
-        setTimeout(updateTimer, 4);
+        if (isTiming) {
+            setTimeout(updateTimer, 4);
+        }
     };
 
     getLocalTime = function () {
         return localTime;
     };
 
+    stopTiming = function () {
+        isTiming = false;
+    };
+
     return {
         "getLocalTime": getLocalTime,
-        "updateTimer": updateTimer
+        "updateTimer": updateTimer,
+        "stopTiming": stopTiming
     };
 }());
 
@@ -121,17 +130,27 @@ var pongComponents = (function () {
     };
 
     getBall = function () {
-        return Object.create(ball);
+        var retBall = Object.create(ball);
+        retBall.pos = {
+            x: width / 2,
+            y: height / 2
+        };
+
+        return retBall;
     };
 
     ball = {
         radius: 5,
         color: "white",
+        pos: {
+            x: width / 2,
+            y: height / 2
+        },
 
         draw: function () {
             context.beginPath();
             context.fillStyle = this.color;
-            context.arc(this.x,  this.y,  this.radius,  0, Math.PI * 2, false);
+            context.arc(this.pos.x,  this.pos.y,  this.radius,  0, Math.PI * 2, false);
             context.fill();
         }
     };
@@ -219,7 +238,9 @@ var physics = (function () {
         update,
         physicsEngine,
         getDelta,
-        initPlayer;
+        initPlayer,
+        doPhysics = true,
+        stopPhysics;
 
     initPlayer = function (myPlayer) {
         player = myPlayer;
@@ -238,17 +259,24 @@ var physics = (function () {
         delta = (Date.now() - lastDelta) / 1000.0;
         lastDelta = Date.now();
         physicsEngine();
-        setTimeout(update,  (15 - (Date.now() - start)));
+        if (doPhysics) {
+            setTimeout(update, (15 - (Date.now() - start)));
+        }
     };
 
     getDelta = function () {
         return delta;
     };
 
+    stopPhysics = function () {
+        doPhysics = false;
+    };
+
     return {
         "getDelta": getDelta,
         "update": update,
-        "initPlayer": initPlayer
+        "initPlayer": initPlayer,
+        "stopPhysics": stopPhysics
     };
 }());
 
@@ -264,9 +292,9 @@ var gameUpdate = (function () {
         serverUpdates = [], fps = 0, fps_avg_count = 0, fps_avg = 0,
         fps_avg_acc = 0,
         handleKeyBoardInputs, isUp, isDown, handleServerUpdates,
-        updateLocalPos, refreshFPS, setPlayerName, getFPS,
+        updateLocalPos, refreshFPS, setPlayerName, getFPS, onGameWin,
         onServerUpdateReceived, processPredictionCorrection, cancelUpdate,
-        onStart, onInGame, ball;
+        onStart, onInGame, ball, startBall, canStart = false, isCanStart;
 
     myPlayer = {};
     otherPlayer = {};
@@ -441,15 +469,29 @@ var gameUpdate = (function () {
         case "server-update":
             onServerUpdateReceived(msg);
             break;
+        case "game-win":
+            onGameWin(msg);
+            break;
         case "cancel-update":
             cancelUpdate();
             break;
         }
     };
 
+    onGameWin = function (msg) {
+        gameTimer.stopTiming();
+        physics.stopPhysics();
+        cancelUpdate();
+
+        window.alert(msg.win + " player won!");
+    };
+
     onInGame = function (msg) {
         myPlayer.side = msg.side;
         otherPlayer.side = msg.side === "left" ? "right" : "left";
+        if (myPlayer.side === 'left') {
+            canStart = true;
+        }
         //noinspection JSUnresolvedVariable
         myPlayer.numPlayer = msg.player_num;
         if (msg.ready === 2) {
@@ -465,7 +507,7 @@ var gameUpdate = (function () {
         serverUpdates.push(msg);
         serverUpdates.sort(function (a, b) {return a.server_time - b.server_time; });
 
-        if (serverUpdates >= (60 * bufferSize)) {
+        if (serverUpdates.length >= (60 * bufferSize)) {
             serverUpdates.shift();
         }
 
@@ -536,6 +578,14 @@ var gameUpdate = (function () {
         return otherPlayer;
     };
 
+    startBall = function () {
+        connector.sendMessage("/game/startball", {"gameId": gameId});
+    };
+
+    isCanStart = function () {
+        return canStart;
+    };
+
     return {
         "parseMessage": parseMessage,
         "getMyPlayer": getMyPlayer,
@@ -544,7 +594,9 @@ var gameUpdate = (function () {
         "down": down,
         "update": update,
         "setPlayerName": setPlayerName,
-        "getFps": getFPS
+        "getFps": getFPS,
+        "startBall": startBall,
+        "isCanStart": isCanStart
     };
 }());
 
@@ -620,7 +672,14 @@ $(document).ready(function () {
     });
 
     document.addEventListener('keydown', function (evt) {
+        var space = false;
         switch (evt.keyCode) {
+        case 32:
+            if (!space && gameUpdate.isCanStart()) {
+                gameUpdate.startBall();
+                space = true;
+            }
+            break;
         case 38:
             gameUpdate.up(true);
             break;

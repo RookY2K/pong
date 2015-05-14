@@ -7,10 +7,17 @@ from google.appengine.api import channel
 from backend_models.player import Player
 from backend_models.game import Game
 
+global_start_ball = {}
 
 def send_message_to_client(msg, token):
     print 'Sending message to {}: {}'.format(token, msg)
     channel.send_message(token, json.dumps(msg))
+
+
+class StartBall(webapp2.RequestHandler):
+    def post(self):
+        game_id = self.request.get('gameId')
+        global_start_ball[game_id] = True
 
 
 class Connect(webapp2.RequestHandler):
@@ -18,6 +25,7 @@ class Connect(webapp2.RequestHandler):
         game_id = self.request.get('gameId')
         player_name = self.request.get('playerName')
         token = channel.create_channel(player_name)
+        global_start_ball[game_id] = False
 
         player_ret = {
             'player_name': player_name,
@@ -37,6 +45,9 @@ class Open(webapp2.RequestHandler):
         player = self.request.get('player_info')
         player = json.loads(player)
         game_id = player['game_id']
+        player_name = player['player_name']
+
+        game_player = Player.get_player(player_name)
 
         game = Game.get_game(game_id)
 
@@ -46,6 +57,8 @@ class Open(webapp2.RequestHandler):
             side = 'left'
         else:
             side = 'right'
+
+        game_player.add_side(side)
 
         message = {
             'state': 'in-game',

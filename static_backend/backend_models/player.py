@@ -8,6 +8,7 @@ class Player(ndb.Model):
     name = ndb.StringProperty(required=True)
     game_id = ndb.StringProperty(default='')
     token = ndb.TextProperty(default='')
+    side = ndb.StringProperty(default='')
     high_score = ndb.IntegerProperty(required=True, default=0)
 
     _default_parent = 'player_parent'
@@ -85,6 +86,7 @@ class Player(ndb.Model):
     def clear_game(self):
         self.game_id = ''
         self._clear_token()
+        self._remove_side()
         self.put()
         memcache.set(self.name, self)
 
@@ -95,5 +97,15 @@ class Player(ndb.Model):
         memcache.set(self.name, self)
 
     @ndb.transactional()
+    def add_side(self, side):
+        self.side = side
+        self.put()
+        memcache.set(self.name, self)
+
+    @ndb.transactional()
     def _clear_token(self):
         self.token = ''
+
+    @ndb.transactional()
+    def _remove_side(self):
+        self.side = ''
