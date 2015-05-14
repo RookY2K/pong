@@ -278,7 +278,7 @@ var gameUpdate = (function () {
     handleKeyBoardInputs = function () {
         var input = [],
             data,
-            packet = {};
+            packet;
 
         if (isUp) {
             input.push("up");
@@ -298,10 +298,11 @@ var gameUpdate = (function () {
             };
 
             myPlayer.paddle.inputs.push(data);
-            data = JSON.stringify(data);
-            packet.input = data;
-            packet.playerName = myPlayer.playerName;
-            connector.sendMessage("/inputs", packet);
+            packet = {
+                playerName: myPlayer.playerName,
+                input: JSON.stringify(data)
+            };
+            connector.sendMessage("/game/inputs", packet);
         }
     };
 
@@ -560,7 +561,7 @@ var connector = (function () {
         var data = {
             "player_info": JSON.stringify(player)
         };
-        sendMessage("/open", data);
+        sendMessage("/game/open", data);
     };
 
     onMessage = function (message) {
@@ -597,7 +598,7 @@ $(document).ready(function () {
     gameId = $("#game_id").find("p").text();
     //noinspection JSUnusedGlobalSymbols
     $.ajax({
-        url: "/connect",
+        url: "/game/connect",
         method: "GET",
         data: {
             "playerName": playerName,
@@ -605,6 +606,7 @@ $(document).ready(function () {
         },
         dataType: "json",
         success: function (data) {
+            gameUpdate.setPlayerName(playerName);
             connector.open(data);
         }
     });

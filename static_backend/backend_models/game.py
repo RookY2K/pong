@@ -4,7 +4,7 @@ __author__ = 'Vince Maiuri'
 from google.appengine.ext import ndb
 from google.appengine.api import memcache
 from game_helpers import constants
-from models.player import Player
+from backend_models.player import Player
 
 
 class Game(ndb.Model):
@@ -21,7 +21,7 @@ class Game(ndb.Model):
 
     @classmethod
     def _game_key(cls, game_index, parent_name=_default_parent):
-        return ndb.Key(cls, game_index, parent=cls._game_parent_key(parent_name))
+        return ndb.Key('Game', game_index, parent=cls._game_parent_key(parent_name))
 
     @ndb.transactional()
     def incr_ready(self):

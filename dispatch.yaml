@@ -1,3 +1,5 @@
+application: pongv4-2
+
 dispatch:
   - url: "*/game/*"
     module: static-backend

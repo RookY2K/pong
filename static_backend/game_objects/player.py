@@ -1,9 +1,7 @@
 __author__ = 'Vince Maiuri'
 from game_helpers import constants
 from game_helpers import math
-from server import server
 import time
-import json
 
 
 class Player:
@@ -13,6 +11,7 @@ class Player:
         self.player_name = player_name
         self.token = token
         self.side = side
+        self.changed = False
         self.game_index = game_index
         if self.side == 'left':
             self.pos = {'x': 10, 'y': constants.CANVAS_HEIGHT/2 - self.length/2}
@@ -31,20 +30,9 @@ class Player:
         self.last_input_seq = 0
         self.last_input_time = self.time_stamp
 
-    def get_inputs(self):
-        inputs = server.game_inputs[self.player_name]
-
-        if inputs:
-            inputs = json.loads(inputs)
-            self.inputs.append({
-                'inputs': inputs['inputs'],
-                'time': inputs['time'],
-                'seq': inputs['seq']
-            })
-
     def check_bounds(self):
         if self.side == 'left' or self.side == 'right':
-            if self.pos['y'] > self.limits['max)y']:
+            if self.pos['y'] > self.limits['max_y']:
                 self.pos['y'] = self.limits['max_y']
 
             if self.pos['y'] < self.limits['min_y']:
@@ -56,8 +44,10 @@ class Player:
         input_length = len(self.inputs)
 
         if input_length:
+            print 'Player {} inputs length = {}'.format(self.player_name, input_length)
             for i in range(input_length):
                 process_input = self.inputs[i]
+                print 'Input seq = {} and last input seq = {}'.format(process_input['seq'], self.last_input_seq)
                 if process_input['seq'] <= self.last_input_seq:
                     continue
 

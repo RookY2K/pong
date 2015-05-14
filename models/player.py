@@ -7,7 +7,7 @@ from google.appengine.api import memcache
 class Player(ndb.Model):
     name = ndb.StringProperty(required=True)
     game_id = ndb.StringProperty(default='')
-    token = ndb.StringProperty(default='')
+    token = ndb.TextProperty(default='')
     high_score = ndb.IntegerProperty(required=True, default=0)
 
     _default_parent = 'player_parent'
@@ -18,7 +18,7 @@ class Player(ndb.Model):
 
     @classmethod
     def _player_key(cls, name, parent_name=_default_parent):
-        return ndb.Key(cls, name.upper(), parent=cls._parent_key(parent_name))
+        return ndb.Key('Player', name.upper(), parent=cls._parent_key(parent_name))
 
     @classmethod
     @ndb.transactional()

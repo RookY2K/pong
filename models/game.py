@@ -21,7 +21,7 @@ class Game(ndb.Model):
 
     @classmethod
     def _game_key(cls, game_index, parent_name=_default_parent):
-        return ndb.Key(cls, game_index, parent=cls._game_parent_key(parent_name))
+        return ndb.Key('Game', game_index, parent=cls._game_parent_key(parent_name))
 
     @ndb.transactional()
     def incr_ready(self):

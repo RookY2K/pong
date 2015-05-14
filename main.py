@@ -16,7 +16,6 @@
 #
 import webapp2
 from controllers import index, pong
-from channel import channel
 
 
 app = webapp2.WSGIApplication([
@@ -24,8 +23,6 @@ app = webapp2.WSGIApplication([
     ('/login', index.Login),
     ('/lobby-update', index.Lobby),
     ('/pong', pong.Pong),
-    ('/connect', channel.Connect),
-    ('/open', channel.Open),
     ('/_ah/channel/disconnected/', pong.LeaveGame),
     ('/leave_game', pong.LeaveGame)
 ], debug=True)
