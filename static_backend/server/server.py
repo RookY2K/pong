@@ -13,8 +13,6 @@ from backend_channel import channel
 import inputs
 
 
-
-
 class Start(webapp2.RequestHandler):
     def post(self):
         game_id = self.request.get('gameId')

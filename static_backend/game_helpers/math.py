@@ -47,6 +47,7 @@ def vector_linear_interpolation(v1, v2, alpha):
 
     return {'x': x, 'y': y}
 
+
 def get_direction_vector(x, y):
     return {
         'x': fixed(x * (constants.PLAYER_SPEED * 0.015)),

@@ -27,7 +27,6 @@ class UpdateClients:
                 right_pos = player.pos
                 right_seq = player.last_input_seq
 
-
         msg = {
             'state': 'server-update',
             'left_pos': left_pos,

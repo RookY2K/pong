@@ -9,6 +9,7 @@ from backend_models.game import Game
 
 global_start_ball = {}
 
+
 def send_message_to_client(msg, token):
     print 'Sending message to {}: {}'.format(token, msg)
     channel.send_message(token, json.dumps(msg))

@@ -283,16 +283,15 @@ var physics = (function () {
 var gameUpdate = (function () {
     "use strict";
     var myPlayer, otherPlayer, parseMessage, getMyPlayer, getOtherPlayer,
-        gameId = $("#game_id").find("p").text(), delta, lastFrameTime,
+        gameId = $("#game_id").find("p").text(),
         serverTime, update, up, down, animateId,
         cvs = document.getElementById("canvas"),
         context = cvs.getContext("2d"),
         height = 600, width = 800, inputSeq = 0, netOffset = 100,
         clientTime = 0.01, targetTime = 0.01, bufferSize = 2,
-        serverUpdates = [], fps = 0, fps_avg_count = 0, fps_avg = 0,
-        fps_avg_acc = 0,
+        serverUpdates = [],
         handleKeyBoardInputs, isUp, isDown, handleServerUpdates,
-        updateLocalPos, refreshFPS, setPlayerName, getFPS, onGameWin,
+        updateLocalPos, setPlayerName, onGameWin,
         onServerUpdateReceived, processPredictionCorrection, cancelUpdate,
         onStart, onInGame, ball, startBall, canStart = false, isCanStart;
 
@@ -336,22 +335,7 @@ var gameUpdate = (function () {
         myPlayer.paddle.checkCollision();
     };
 
-    refreshFPS = function () {
-        fps = 1 / delta;
-        fps_avg_acc += fps;
-        fps_avg_count++;
-
-        if (fps_avg_count >= 10) {
-            fps_avg = fps_avg_acc / 10;
-            fps_avg_count = 1;
-            fps_avg_acc = fps;
-        }
-    };
-
-    update = function (curTime) {
-        delta = lastFrameTime ? gameMath.fixed((curTime - lastFrameTime) / 1000.0) : 0.016;
-        lastFrameTime = curTime;
-
+    update = function () {
         pongComponents.initCanvas();
 
         context.fillStyle = "black";
@@ -368,8 +352,6 @@ var gameUpdate = (function () {
         updateLocalPos();
 
         myPlayer.paddle.draw(myPlayer.side);
-
-        refreshFPS();
 
         animateId = window.requestAnimationFrame(update);
     };
@@ -566,10 +548,6 @@ var gameUpdate = (function () {
         window.cancelAnimationFrame(animateId);
     };
 
-    getFPS = function () {
-        return fps_avg;
-    };
-
     getMyPlayer = function () {
         return myPlayer;
     };
@@ -594,7 +572,6 @@ var gameUpdate = (function () {
         "down": down,
         "update": update,
         "setPlayerName": setPlayerName,
-        "getFps": getFPS,
         "startBall": startBall,
         "isCanStart": isCanStart
     };
@@ -630,12 +607,10 @@ var connector = (function () {
     };
 
     onError = function () {
-        //TODO finish stub
         return null;
     };
 
     onClose = function () {
-        //TODO finish stub
         return null;
     };
 

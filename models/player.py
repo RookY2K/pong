@@ -52,7 +52,6 @@ class Player(ndb.Model):
     def query_all(cls, parent_name=_default_parent):
         return cls.query(ancestor=cls._parent_key(parent_name)).order(-cls.high_score)
 
-
     @classmethod
     def paginate_players(cls, page):
         qry = cls.query_all()

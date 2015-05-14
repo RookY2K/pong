@@ -14,6 +14,3 @@ class UpdateTimer:
         self.timer_end_delta = time.time() * 1000
         self.count += 1
         self.timer_time += self.timer_start_delta / 1000.0
-        # if self.count % 1000 == 0:
-        #     print 'update timer iteration: {}, timer: {}'.format(self.count, self.timer_time)
-

@@ -7,6 +7,7 @@ from helpers import constants
 from models.player import Player
 from models.game import Game
 
+
 class Pong(webapp2.RequestHandler):
     def get(self):
         player_name = self.request.get('playerName')
