@@ -1,6 +1,6 @@
 from backend_channel import channel
 
-__author__ = 'Vince Maiuri'
+__author__ = 'RookY2K'
 
 
 class UpdateClients:

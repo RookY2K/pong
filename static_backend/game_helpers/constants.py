@@ -1,4 +1,4 @@
-__author__ = 'Vince Maiuri'
+__author__ = 'RookY2K'
 FRAME_TIME = 45
 PADDLE_LENGTH = 150
 PADDLE_WIDTH = 5

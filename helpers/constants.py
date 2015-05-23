@@ -1,7 +1,7 @@
 import os
 import jinja2
 
-__author__ = 'Vince Maiuri'
+__author__ = 'RookY2K'
 
 JINJA_ENVIRONMENT = jinja2.Environment(
     loader=jinja2.FileSystemLoader(os.path.join(os.path.dirname(__file__), '../views')),

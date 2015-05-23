@@ -1,7 +1,7 @@
 import json
 import webapp2
 
-__author__ = 'Vince Maiuri'
+__author__ = 'RookY2K'
 
 global_game_players = {}
 

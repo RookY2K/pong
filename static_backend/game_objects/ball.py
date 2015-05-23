@@ -1,4 +1,4 @@
-__author__ = 'Vince Maiuri'
+__author__ = 'RookY2K'
 from game_helpers import constants
 from game_helpers import math
 import time

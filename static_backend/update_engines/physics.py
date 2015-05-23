@@ -1,4 +1,4 @@
-__author__ = 'Vince Maiuri'
+__author__ = 'RookY2K'
 import time
 from game_helpers import math
 from backend_channel import channel
